@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Secrets / local config — commit only .env.example (the template)
+.env
+.env.*
+!.env.example
+
+# SQLite memory — never commit agent memory
+*.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+reports/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
