@@ -21,6 +21,9 @@ env/
 # SQLite memory — never commit agent memory
 *.db
 
+# Swarm data directory (agent db files, registry)
+data/
+
 # Testing
 .pytest_cache/
 .coverage
