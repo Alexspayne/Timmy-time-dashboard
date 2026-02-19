@@ -1,5 +1,7 @@
 # Timmy Time — Mission Control
 
+[![Tests](https://github.com/Alexspayne/Timmy-time-dashboard/actions/workflows/tests.yml/badge.svg)](https://github.com/Alexspayne/Timmy-time-dashboard/actions/workflows/tests.yml)
+
 A local-first dashboard for your sovereign AI agents. Talk to Timmy, watch his status, verify Ollama is running — all from a browser, no cloud required.
 
 ---
