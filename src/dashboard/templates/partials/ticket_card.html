@@ -1,0 +1,44 @@
+{# Single Luna ticket card — HTMX polls this until status is terminal #}
+{% set status = ticket.status.value %}
+{% set is_terminal = ticket.status.is_terminal %}
+{% set color = {
+  "recording":   "amber",
+  "transcribing":"blue",
+  "structuring": "blue",
+  "ready":       "green",
+  "error":       "red"
+}[status] %}
+
+<div class="ticket-card ticket-{{ status }}"
+     id="ticket-{{ ticket.id }}"
+     {% if not is_terminal %}
+     hx-get="/luna/tickets/{{ ticket.id }}/status"
+     hx-trigger="every 2s"
+     hx-swap="outerHTML"
+     {% endif %}>
+
+  <div class="ticket-card-header">
+    <span class="status-dot {{ color }}"></span>
+    <span class="ticket-id">#{{ ticket.id }}</span>
+    <span class="ticket-badge badge-{{ status }}">{{ status | upper }}</span>
+  </div>
+
+  {% if ticket.title %}
+  <div class="ticket-title">{{ ticket.title }}</div>
+  {% elif status == "recording" %}
+  <div class="ticket-title dim">Receiving audio...</div>
+  {% elif status == "transcribing" %}
+  <div class="ticket-title dim">Transcribing<span class="blink-dots">...</span></div>
+  {% elif status == "structuring" %}
+  <div class="ticket-title dim">Structuring ticket<span class="blink-dots">...</span></div>
+  {% endif %}
+
+  {% if is_terminal and ticket.title %}
+  <div class="ticket-priority priority-{{ ticket.priority.value }}">{{ ticket.priority.value | upper }}</div>
+  {% endif %}
+
+  {% if status == "error" %}
+  <div class="ticket-error">{{ ticket.error }}</div>
+  {% endif %}
+
+</div>

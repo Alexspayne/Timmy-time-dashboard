@@ -1,0 +1,10 @@
+{# Luna tickets list — full panel body content #}
+<div id="luna-tickets">
+  {% if tickets %}
+    {% for ticket in tickets %}
+      {% include "partials/ticket_card.html" %}
+    {% endfor %}
+  {% else %}
+  <div class="no-tickets">no tickets yet</div>
+  {% endif %}
+</div>

@@ -28,13 +28,16 @@ dev = [
     "pytest-asyncio>=0.24.0",
     "pytest-cov>=5.0.0",
 ]
+whisper = [
+    "openai-whisper>=20231117",
+]
 
 [project.scripts]
 timmy = "timmy.cli:main"
 
 [tool.hatch.build.targets.wheel]
 sources = {"src" = ""}
-include = ["src/timmy", "src/dashboard", "src/config.py"]
+include = ["src/timmy", "src/dashboard", "src/luna", "src/config.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

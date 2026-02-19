@@ -250,6 +250,140 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: var(--border-glow); }
 
 
+/* ── Luna Command ────────────────────────────────── */
+.luna-panel .panel-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Record button */
+.record-zone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.record-btn {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  border-radius: 3px;
+  color: var(--text-bright);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px 14px;
+  cursor: pointer;
+  letter-spacing: 0.14em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  touch-action: manipulation;
+}
+.record-btn:hover { background: var(--border-glow); }
+.record-btn.recording {
+  background: var(--red-dim);
+  border-color: var(--red);
+  color: var(--red);
+  animation: record-pulse 1.2s ease-in-out infinite;
+}
+@keyframes record-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 68, 85, 0.4); }
+  50%       { box-shadow: 0 0 0 6px rgba(255, 68, 85, 0); }
+}
+
+.record-icon { font-size: 14px; }
+
+.record-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red);
+  animation: blink 0.8s infinite;
+  flex-shrink: 0;
+}
+
+/* Ticket cards */
+.ticket-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 10px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+.ticket-card:last-child { margin-bottom: 0; }
+
+.ticket-card.ticket-ready  { border-left: 3px solid var(--green); }
+.ticket-card.ticket-error  { border-left: 3px solid var(--red); }
+.ticket-card.ticket-transcribing,
+.ticket-card.ticket-structuring { border-left: 3px solid var(--blue); }
+.ticket-card.ticket-recording { border-left: 3px solid var(--amber); }
+
+.ticket-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.ticket-id {
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  flex: 1;
+}
+.ticket-badge {
+  padding: 1px 6px;
+  border-radius: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.badge-recording   { background: var(--amber-dim); color: var(--amber); }
+.badge-transcribing,
+.badge-structuring { background: #003a5a;          color: var(--blue); }
+.badge-ready       { background: var(--green-dim); color: var(--green); }
+.badge-error       { background: var(--red-dim);   color: var(--red); }
+
+.ticket-title {
+  color: var(--text-bright);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+.ticket-title.dim { color: var(--text-dim); font-style: italic; }
+
+.ticket-priority {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.priority-high   { color: var(--red); }
+.priority-medium { color: var(--amber); }
+.priority-low    { color: var(--text-dim); }
+
+.ticket-error {
+  color: var(--red);
+  font-size: 10px;
+  margin-top: 4px;
+  word-break: break-word;
+}
+
+.no-tickets { color: var(--text-dim); font-size: 11px; text-align: center; padding: 8px 0; }
+
+.ticket-placeholder {
+  color: var(--text-dim);
+  font-size: 11px;
+  padding: 8px 0;
+  text-align: center;
+}
+
+.blink-dots { animation: blink 1s infinite; }
+
+
 /* ════════════════════════════════════════════════════
    MOBILE  (≤ 768 px)
    ════════════════════════════════════════════════════ */

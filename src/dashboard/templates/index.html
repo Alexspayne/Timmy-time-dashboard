@@ -37,6 +37,30 @@
     </div>
   </div>
 
+  <!-- Luna Command -->
+  <div class="panel luna-panel">
+    <div class="panel-header">// LUNA COMMAND</div>
+    <div class="panel-body">
+
+      <!-- Record Button -->
+      <div class="record-zone">
+        <button id="record-btn" class="record-btn" onclick="toggleRecord()">
+          <span class="record-icon">⏺</span> RECORD
+        </button>
+        <span id="record-indicator" class="record-pulse" style="display:none;"></span>
+      </div>
+
+      <!-- Ticket List (HTMX loads + receives new cards) -->
+      <div id="luna-tickets"
+           hx-get="/luna/tickets"
+           hx-trigger="load"
+           hx-swap="innerHTML">
+        <div class="no-tickets">loading...</div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <!-- Chat Panel -->
@@ -82,6 +106,92 @@
     log.scrollTop = log.scrollHeight;
   }
   scrollChat();
+
+  // ── Luna audio recording ───────────────────────────────────────────────────
+  let mediaRecorder = null;
+  let audioChunks   = [];
+  let isRecording   = false;
+
+  async function toggleRecord() {
+    if (!isRecording) {
+      await startRecording();
+    } else {
+      stopRecording();
+    }
+  }
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        await submitAudio(blob);
+      };
+
+      mediaRecorder.start();
+      isRecording = true;
+      setRecordingUI(true);
+    } catch (err) {
+      alert('Microphone access required to record. Please allow and try again.');
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    isRecording = false;
+    setRecordingUI(false);
+  }
+
+  function setRecordingUI(active) {
+    const btn  = document.getElementById('record-btn');
+    const pulse = document.getElementById('record-indicator');
+    if (active) {
+      btn.classList.add('recording');
+      btn.innerHTML = '<span class="record-icon">⏹</span> STOP';
+      pulse.style.display = 'inline-block';
+    } else {
+      btn.classList.remove('recording');
+      btn.innerHTML = '<span class="record-icon">⏺</span> RECORD';
+      pulse.style.display = 'none';
+    }
+  }
+
+  async function submitAudio(blob) {
+    const ticketList = document.getElementById('luna-tickets');
+
+    // Show placeholder while we wait for the server response
+    const placeholder = document.createElement('div');
+    placeholder.className = 'ticket-placeholder';
+    placeholder.textContent = 'Sending...';
+    ticketList.prepend(placeholder);
+
+    try {
+      const form = new FormData();
+      form.append('audio', blob, 'recording.webm');
+
+      const res = await fetch('/luna/record', { method: 'POST', body: form });
+      if (res.ok) {
+        const html = await res.text();
+        placeholder.outerHTML = html;
+        // Let HTMX process the newly injected polling attributes
+        htmx.process(ticketList);
+      } else {
+        placeholder.textContent = 'Upload failed.';
+      }
+    } catch (err) {
+      placeholder.textContent = 'Network error.';
+    }
+  }
 </script>
 
 {% endblock %}
