@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#060d14" />
+  <title>Timmy Time — Mission Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Demo banner (GitHub Pages only) ───────────────── */
+    .demo-banner {
+      background: #0c1f00;
+      color: #88cc33;
+      border-bottom: 1px solid #2a5500;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      padding: 8px 16px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .demo-banner a {
+      color: #aae055;
+      text-decoration: underline;
+    }
+    /* shrink mc-main to account for the banner (~33px) */
+    .mc-main {
+      height: calc(100dvh - var(--header-h) - 33px);
+    }
+    @media (max-width: 768px) {
+      .mc-main {
+        height: calc(100dvh - var(--header-h) - 33px);
+      }
+    }
+    /* Disabled input/button for demo mode */
+    .chat-input-bar input[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .chat-input-bar button[disabled] {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Static demo notice — not shown when running locally -->
+  <div class="demo-banner">
+    &#9432; STATIC DEMO &mdash; chat is disabled here.
+    To run Timmy locally: <a href="https://github.com/Alexspayne/Timmy-time-dashboard#quickstart-copy-paste-friendly" target="_blank" rel="noopener">see the README</a>.
+  </div>
+
+  <header class="mc-header">
+    <div class="mc-header-left">
+      <span class="mc-title">TIMMY TIME</span>
+      <span class="mc-subtitle">MISSION CONTROL</span>
+    </div>
+    <div class="mc-header-right">
+      <span class="mc-time" id="clock"></span>
+    </div>
+  </header>
+
+  <main class="mc-main">
+
+    <div class="sidebar">
+
+      <!-- Agents -->
+      <div class="panel">
+        <div class="panel-header">// AGENTS</div>
+        <div class="panel-body">
+          <div class="agent-card">
+            <div class="agent-card-header">
+              <span class="status-dot amber"></span>
+              <span class="agent-name">TIMMY</span>
+            </div>
+            <div class="agent-meta">
+              <span class="meta-key">TYPE</span>    <span class="meta-val">sovereign</span><br>
+              <span class="meta-key">MODEL</span>   <span class="meta-val">llama3.2</span><br>
+              <span class="meta-key">BACKEND</span> <span class="meta-val">ollama</span><br>
+              <span class="meta-key">VERSION</span> <span class="meta-val">1.0.0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Health — static for GitHub Pages (no backend available) -->
+      <div class="panel">
+        <div class="panel-header">// SYSTEM HEALTH</div>
+        <div class="panel-body">
+          <div class="health-row">
+            <span class="health-label">OLLAMA</span>
+            <span class="badge down">OFFLINE</span>
+          </div>
+          <div class="health-row">
+            <span class="health-label">TIMMY</span>
+            <span class="badge down">OFFLINE</span>
+          </div>
+          <div class="health-row">
+            <span class="health-label">MODEL</span>
+            <span class="badge ready">llama3.2</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Chat Panel -->
+    <div class="panel chat-panel">
+      <div class="panel-header">// TIMMY INTERFACE</div>
+
+      <div class="chat-log" id="chat-log">
+
+        <div class="chat-message agent">
+          <div class="msg-meta">TIMMY // SYSTEM</div>
+          <div class="msg-body">Mission Control initialized. Timmy ready — awaiting input.</div>
+        </div>
+
+        <div class="chat-message user">
+          <div class="msg-meta">YOU // 09:41:00</div>
+          <div class="msg-body">What is sovereignty?</div>
+        </div>
+
+        <div class="chat-message agent">
+          <div class="msg-meta">TIMMY // 09:41:02</div>
+          <div class="msg-body">Sovereignty is the condition of being the final authority over your own decisions — and owning the infrastructure that executes them.
+
+For an AI agent, that means running on hardware you control, with a model you've chosen, using software you can inspect. No terms of service that can be revoked. No API key that can be rate-limited.
+
+That's why I run on Ollama. Local compute. Your machine. Your keys.</div>
+        </div>
+
+        <div class="chat-message agent">
+          <div class="msg-meta">TIMMY // SYSTEM</div>
+          <div class="msg-body">&#x2514;&#x2500; This is a static demo hosted on GitHub Pages. The conversation above is an example.
+
+To chat with the live Timmy, run the dashboard locally:
+
+  git clone https://github.com/Alexspayne/Timmy-time-dashboard
+  cd Timmy-time-dashboard
+  python3 -m venv .venv &amp;&amp; source .venv/bin/activate
+  pip install -e ".[dev]"
+  ollama serve          # terminal 2
+  ollama pull llama3.2  # terminal 1
+  timmy serve           # opens http://localhost:8000</div>
+        </div>
+
+      </div>
+
+      <!-- Input bar — disabled in demo mode -->
+      <div class="chat-input-bar">
+        <div style="display:flex; flex:1; gap:8px;">
+          <input
+            type="text"
+            placeholder="run timmy locally to chat..."
+            disabled
+            style="flex:1;"
+          />
+          <button type="button" disabled>SEND</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent =
+        now.toLocaleTimeString('en-US', { hour12: false });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Scroll chat to bottom on load
+    (function () {
+      const log = document.getElementById('chat-log');
+      log.scrollTop = log.scrollHeight;
+    })();
+  </script>
+
+</body>
+</html>

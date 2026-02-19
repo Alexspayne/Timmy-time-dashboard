@@ -207,6 +207,38 @@ pyproject.toml    # dependencies and build config
 
 ---
 
+## GitHub Pages (static demo)
+
+A read-only preview of the dashboard UI is deployed automatically from the `docs/` folder.
+
+**Live URL:** https://alexspayne.github.io/Timmy-time-dashboard/
+
+The static demo shows the full layout and styling but has no backend — the chat input is disabled and system health shows OFFLINE. To interact with Timmy you need to run the app locally (see Quickstart above).
+
+**Deploying / enabling GitHub Pages:**
+
+1. Go to **Settings → Pages** in the GitHub repo.
+2. Under *Source*, select **Deploy from a branch**.
+3. Choose branch **`master`** and folder **`/docs`**, then click **Save**.
+4. GitHub Pages builds in ~1 minute; the URL will be `https://alexspayne.github.io/Timmy-time-dashboard/`.
+
+**Files involved:**
+
+```
+docs/
+  index.html   ← static demo page (no server required)
+  style.css    ← copy of static/style.css
+.nojekyll      ← prevents Jekyll from processing the docs/ folder
+```
+
+To update the static demo after changing the CSS or layout, copy the latest CSS:
+
+```bash
+cp static/style.css docs/style.css
+```
+
+---
+
 ## Roadmap
 
 | Version | Name       | Milestone                                  |
