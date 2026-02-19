@@ -65,6 +65,38 @@ Open your browser to **http://localhost:8000**
 
 ---
 
+## Access from your phone
+
+The dashboard is mobile-optimized. To open it on your phone:
+
+**Step 1 — bind to your local network** (instead of just localhost):
+
+```bash
+uvicorn dashboard.app:app --host 0.0.0.0 --port 8000 --reload
+```
+
+**Step 2 — find your Mac's IP address:**
+
+```bash
+ipconfig getifaddr en0
+```
+
+This prints something like `192.168.1.42`. If you're on ethernet instead of Wi-Fi, try `en1`.
+
+**Step 3 — open on your phone:**
+
+Make sure your phone is on the **same Wi-Fi network** as your Mac, then open:
+
+```
+http://192.168.1.42:8000
+```
+
+(replace with your actual IP)
+
+On mobile the layout switches to a single column — status panels become a horizontal scroll strip at the top, chat fills the rest of the screen. The input field is sized to prevent iOS from zooming in when you tap it.
+
+---
+
 ## What you'll see
 
 The dashboard has two panels on the left and a chat window on the right:
