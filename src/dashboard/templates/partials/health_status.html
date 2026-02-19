@@ -1,0 +1,19 @@
+<div class="panel-header">// SYSTEM HEALTH</div>
+<div class="panel-body">
+  <div class="health-row">
+    <span class="health-label">OLLAMA</span>
+    {% if ollama %}
+    <span class="badge up">UP</span>
+    {% else %}
+    <span class="badge down">DOWN</span>
+    {% endif %}
+  </div>
+  <div class="health-row">
+    <span class="health-label">TIMMY</span>
+    <span class="badge ready">READY</span>
+  </div>
+  <div class="health-row">
+    <span class="health-label">MODEL</span>
+    <span class="badge ready">llama3.2</span>
+  </div>
+</div>
