@@ -4,17 +4,17 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 
+from config import settings
+
 router = APIRouter(tags=["health"])
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
-
-OLLAMA_URL = "http://localhost:11434"
 
 
 async def check_ollama() -> bool:
     """Ping Ollama to verify it's running."""
     try:
         async with httpx.AsyncClient(timeout=2.0) as client:
-            r = await client.get(OLLAMA_URL)
+            r = await client.get(settings.ollama_url)
             return r.status_code == 200
     except Exception:
         return False

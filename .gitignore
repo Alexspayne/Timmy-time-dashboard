@@ -13,9 +13,10 @@ dist/
 venv/
 env/
 
-# Secrets / local config
+# Secrets / local config — commit only .env.example (the template)
 .env
 .env.*
+!.env.example
 
 # SQLite memory — never commit agent memory
 *.db
