@@ -55,12 +55,18 @@
           hx-target="#chat-log"
           hx-swap="beforeend"
           hx-indicator="#send-indicator"
-          hx-on::after-request="this.reset(); scrollChat()"
+          hx-sync="this:drop"
+          hx-disabled-elt="find button"
+          hx-on::after-settle="this.reset(); scrollChat()"
           style="display:flex; flex:1; gap:8px;">
       <input type="text"
              name="message"
              placeholder="send a message to timmy..."
              autocomplete="off"
+             autocorrect="off"
+             autocapitalize="none"
+             spellcheck="false"
+             enterkeyhint="send"
              required />
       <button type="submit">
         SEND
