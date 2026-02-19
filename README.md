@@ -136,14 +136,58 @@ timmy status
 
 ---
 
+## Architecture
+
+```mermaid
+graph TD
+    Phone["📱 Phone / Browser"]
+    Browser["💻 Browser"]
+
+    Phone  -->|HTTP + HTMX| FastAPI
+    Browser -->|HTTP + HTMX| FastAPI
+
+    subgraph "Local Machine"
+        FastAPI["FastAPI\n(dashboard.app)"]
+        Jinja["Jinja2 Templates\n+ static CSS"]
+        Timmy["Timmy Agent\n(Agno wrapper)"]
+        Ollama["Ollama\n:11434"]
+        SQLite[("SQLite\ntimmy.db")]
+
+        FastAPI -->|renders| Jinja
+        FastAPI -->|/agents/timmy/chat| Timmy
+        FastAPI -->|/health/status ping| Ollama
+        Timmy   -->|LLM call| Ollama
+        Timmy   -->|conversation memory| SQLite
+    end
+```
+
+All traffic stays on your local network. No cloud, no telemetry.
+
+## Configuration
+
+Override defaults without touching code — create a `.env` file (see `.env.example`):
+
+```bash
+cp .env.example .env
+# then edit .env
+```
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `OLLAMA_URL` | `http://localhost:11434` | Ollama host (useful if Ollama runs on another machine) |
+| `OLLAMA_MODEL` | `llama3.2` | LLM model served by Ollama |
+| `DEBUG` | `false` | Set `true` to enable `/docs` and `/redoc` |
+
 ## Project layout
 
 ```
 src/
+  config.py       # pydantic-settings (reads .env)
   timmy/          # Timmy agent — wraps Agno (soul = prompt, body = Agno)
   dashboard/      # FastAPI app + routes + Jinja2 templates
 static/           # CSS (dark mission-control theme)
-tests/            # 27 pytest tests
+tests/            # pytest suite (27 tests, no Ollama required)
+.env.example      # environment variable reference
 pyproject.toml    # dependencies and build config
 ```
 
