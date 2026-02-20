@@ -1,3 +1,4 @@
+/* ── Mission Control palette ──────────────────────── */
 :root {
   --bg-deep:     #060d14;
   --bg-panel:    #0c1824;
@@ -14,20 +15,32 @@
   --red:         #ff4455;
   --red-dim:     #7a1a22;
   --blue:        #00aaff;
-  --font: 'JetBrains Mono', 'Courier New', monospace;
-  --header-h: 52px;
+  --font:        'JetBrains Mono', 'Courier New', monospace;
+  --header-h:    52px;
+
+  /* Bootstrap dark-mode overrides */
+  --bs-body-bg:            var(--bg-deep);
+  --bs-body-color:         var(--text);
+  --bs-body-font-family:   var(--font);
+  --bs-body-font-size:     13px;
+  --bs-card-bg:            var(--bg-panel);
+  --bs-card-border-color:  var(--border);
+  --bs-card-cap-bg:        var(--bg-card);
+  --bs-card-cap-color:     var(--text-dim);
+  --bs-border-color:       var(--border);
+  --bs-form-control-bg:    var(--bg-deep);
+  --bs-form-control-color: var(--text-bright);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; }
 
 body {
+  font-family: var(--font);
   background: var(--bg-deep);
   color: var(--text);
-  font-family: var(--font);
   font-size: 13px;
   min-height: 100dvh;
   overflow-x: hidden;
-  /* prevent bounce-scroll from revealing background on iOS */
   overscroll-behavior: none;
 }
 
@@ -63,24 +76,40 @@ body {
   letter-spacing: 0.1em;
 }
 
-/* ── Layout — desktop ────────────────────────────── */
+/* ── Main layout ─────────────────────────────────── */
 .mc-main {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 16px;
   padding: 16px;
   height: calc(100dvh - var(--header-h));
+  overflow: hidden;
+}
+.mc-content {
+  height: 100%;
+}
+.mc-content > .row {
+  height: 100%;
 }
 
-/* ── Panels ──────────────────────────────────────── */
-.panel {
+/* ── Sidebar ─────────────────────────────────────── */
+.mc-sidebar {
+  overflow-y: auto;
+}
+
+/* ── Chat column ─────────────────────────────────── */
+.mc-chat-panel {
+  min-height: 0;
+}
+.mc-chat-panel > .card {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Panel / Card overrides ──────────────────────── */
+.mc-panel {
   background: var(--bg-panel);
   border: 1px solid var(--border);
   border-radius: 4px;
-  overflow: hidden;
 }
-.panel-header {
-  padding: 8px 14px;
+.mc-panel-header {
   background: var(--bg-card);
   border-bottom: 1px solid var(--border);
   font-size: 10px;
@@ -88,36 +117,22 @@ body {
   color: var(--text-dim);
   letter-spacing: 0.2em;
   text-transform: uppercase;
-}
-.panel-body { padding: 14px; }
-
-/* ── Sidebar — desktop ───────────────────────────── */
-.sidebar {
-  grid-column: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  overflow-y: auto;
+  padding: 8px 14px;
 }
 
 /* ── Agent Card ──────────────────────────────────── */
-.agent-card {
+.mc-agent-card {
   border: 1px solid var(--border);
   border-radius: 3px;
   padding: 12px;
   background: var(--bg-card);
-}
-.agent-card-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
 }
 .status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+  display: inline-block;
 }
 .status-dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
 .status-dot.amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
@@ -145,28 +160,15 @@ body {
 .health-row:last-child { border-bottom: none; }
 .health-label { color: var(--text-dim); letter-spacing: 0.08em; }
 
-.badge {
-  padding: 2px 8px;
-  border-radius: 2px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-}
-.badge.up    { background: var(--green-dim);  color: var(--green); }
-.badge.down  { background: var(--red-dim);    color: var(--red); }
-.badge.ready { background: var(--amber-dim);  color: var(--amber); }
+/* Status badges (use Bootstrap .badge base + mc-badge-* modifier) */
+.mc-badge-up    { background: var(--green-dim) !important; color: var(--green) !important; font-size: 10px; letter-spacing: 0.12em; border-radius: 2px; }
+.mc-badge-down  { background: var(--red-dim)   !important; color: var(--red)   !important; font-size: 10px; letter-spacing: 0.12em; border-radius: 2px; }
+.mc-badge-ready { background: var(--amber-dim) !important; color: var(--amber) !important; font-size: 10px; letter-spacing: 0.12em; border-radius: 2px; }
 
-/* ── Chat Panel ──────────────────────────────────── */
-.chat-panel {
-  display: flex;
-  flex-direction: column;
-  grid-column: 2;
-  min-height: 0;
-}
+/* ── Chat ────────────────────────────────────────── */
 .chat-log {
   flex: 1;
   overflow-y: auto;
-  padding: 14px;
   -webkit-overflow-scrolling: touch;
 }
 .chat-message { margin-bottom: 16px; }
@@ -193,34 +195,31 @@ body {
 .chat-message.agent     .msg-body { border-left: 3px solid var(--green); }
 .chat-message.error-msg .msg-body { border-left: 3px solid var(--red); color: var(--red); }
 
-/* ── Chat Input ──────────────────────────────────── */
-.chat-input-bar {
+/* ── Chat input footer ───────────────────────────── */
+.mc-chat-footer {
   padding: 12px 14px;
-  /* safe area for iPhone home bar */
   padding-bottom: max(12px, env(safe-area-inset-bottom));
   background: var(--bg-card);
   border-top: 1px solid var(--border);
-  display: flex;
-  gap: 8px;
   flex-shrink: 0;
 }
-.chat-input-bar input {
-  flex: 1;
-  background: var(--bg-deep);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  color: var(--text-bright);
-  font-family: var(--font);
-  font-size: 13px;
-  padding: 8px 12px;
-  outline: none;
+
+/* Bootstrap form-control overrides */
+.mc-input {
+  background: var(--bg-deep) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 3px !important;
+  color: var(--text-bright) !important;
+  font-family: var(--font) !important;
+  font-size: 13px !important;
 }
-.chat-input-bar input:focus {
-  border-color: var(--border-glow);
-  box-shadow: 0 0 0 1px var(--border-glow);
+.mc-input:focus {
+  border-color: var(--border-glow) !important;
+  box-shadow: 0 0 0 1px var(--border-glow) !important;
 }
-.chat-input-bar input::placeholder { color: var(--text-dim); }
-.chat-input-bar button {
+.mc-input::placeholder { color: var(--text-dim) !important; }
+
+.mc-btn-send {
   background: var(--border-glow);
   border: none;
   border-radius: 3px;
@@ -229,13 +228,12 @@ body {
   font-size: 12px;
   font-weight: 700;
   padding: 8px 18px;
-  cursor: pointer;
   letter-spacing: 0.12em;
   transition: background 0.15s, color 0.15s;
-  /* prevent double-tap zoom on iOS */
   touch-action: manipulation;
+  white-space: nowrap;
 }
-.chat-input-bar button:hover { background: var(--blue); color: var(--bg-deep); }
+.mc-btn-send:hover { background: var(--blue); color: var(--bg-deep); }
 
 /* ── HTMX Loading ────────────────────────────────── */
 .htmx-indicator { display: none; }
@@ -263,63 +261,38 @@ body {
   .mc-subtitle { display: none; }
   .mc-time    { font-size: 12px; }
 
-  /* Single-column stack; sidebar on top, chat below */
-  .mc-main {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
-    padding: 8px;
-    gap: 8px;
-    height: calc(100dvh - var(--header-h));
-  }
+  /* Full-height layout becomes scrollable column stack */
+  .mc-main { height: auto; overflow: visible; padding: 8px; }
+  .mc-content, .mc-content > .row { height: auto; }
 
   /* Sidebar becomes a horizontal scroll strip */
-  .sidebar {
-    grid-column: 1;
-    grid-row: 1;
-    flex-direction: row;
+  .mc-sidebar {
+    flex-direction: row !important;
     overflow-x: auto;
     overflow-y: hidden;
-    gap: 8px;
-    flex-shrink: 0;
-    scrollbar-width: none;           /* Firefox */
+    scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
-  .sidebar::-webkit-scrollbar { display: none; }
-
-  /* Each panel card has a fixed width so they don't squash */
-  .sidebar .panel {
+  .mc-sidebar::-webkit-scrollbar { display: none; }
+  .mc-sidebar .mc-panel {
     min-width: 200px;
     flex-shrink: 0;
   }
 
-  /* Chat fills remaining vertical space */
-  .chat-panel {
-    grid-column: 1;
-    grid-row: 2;
-    min-height: 0;
-  }
+  /* Chat fills remaining space with defined height */
+  .mc-chat-panel { min-height: 60dvh; }
+  .mc-chat-panel > .card { height: 60dvh; }
 
   /* Tighter message padding */
-  .chat-log { padding: 10px; }
+  .chat-log { padding: 10px !important; }
   .msg-body { padding: 8px 10px; font-size: 13px; }
   .chat-message { margin-bottom: 12px; }
 
-  /* Touch-friendly input bar */
-  .chat-input-bar {
+  /* Touch-friendly input */
+  .mc-chat-footer {
     padding: 8px 10px;
     padding-bottom: max(8px, env(safe-area-inset-bottom));
-    gap: 6px;
   }
-  .chat-input-bar input {
-    /* 16px prevents iOS from zooming when the field focuses */
-    font-size: 16px;
-    min-height: 44px;
-    padding: 0 12px;
-  }
-  .chat-input-bar button {
-    min-height: 44px;
-    min-width: 64px;
-    font-size: 12px;
-    padding: 0 14px;
-  }
+  .mc-input { font-size: 16px !important; min-height: 44px; }
+  .mc-btn-send { min-height: 44px; min-width: 64px; font-size: 12px; padding: 0 14px; }
 }
