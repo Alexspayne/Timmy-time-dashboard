@@ -2,77 +2,87 @@
 
 {% block content %}
 
-<div class="sidebar">
+<div class="container-fluid mc-content h-100">
+  <div class="row g-3 h-100">
 
-  <!-- Agents -->
-  <div class="panel">
-    <div class="panel-header">// AGENTS</div>
-    <div class="panel-body">
-      <div class="agent-card">
-        <div class="agent-card-header">
-          <span class="status-dot amber"></span>
-          <span class="agent-name">TIMMY</span>
+    <!-- Sidebar -->
+    <div class="col-12 col-md-3 d-flex flex-column gap-3 mc-sidebar">
+
+      <!-- Agents -->
+      <div class="card mc-panel">
+        <div class="card-header mc-panel-header">// AGENTS</div>
+        <div class="card-body p-3">
+          <div class="mc-agent-card">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="status-dot amber"></span>
+              <span class="agent-name">TIMMY</span>
+            </div>
+            <div class="agent-meta">
+              <span class="meta-key">TYPE</span>    <span class="meta-val">sovereign</span><br>
+              <span class="meta-key">MODEL</span>   <span class="meta-val">llama3.2</span><br>
+              <span class="meta-key">BACKEND</span> <span class="meta-val">ollama</span><br>
+              <span class="meta-key">VERSION</span> <span class="meta-val">1.0.0</span>
+            </div>
+          </div>
         </div>
-        <div class="agent-meta">
-          <span class="meta-key">TYPE</span>    <span class="meta-val">sovereign</span><br>
-          <span class="meta-key">MODEL</span>   <span class="meta-val">llama3.2</span><br>
-          <span class="meta-key">BACKEND</span> <span class="meta-val">ollama</span><br>
-          <span class="meta-key">VERSION</span> <span class="meta-val">1.0.0</span>
+      </div>
+
+      <!-- System Health (HTMX polled) -->
+      <div class="card mc-panel"
+           hx-get="/health/status"
+           hx-trigger="load, every 30s"
+           hx-target="this"
+           hx-swap="innerHTML">
+        <div class="card-header mc-panel-header">// SYSTEM HEALTH</div>
+        <div class="card-body p-3">
+          <div class="health-row">
+            <span class="health-label">LOADING...</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Chat Panel -->
+    <div class="col-12 col-md-9 d-flex flex-column mc-chat-panel">
+      <div class="card mc-panel flex-grow-1 d-flex flex-column min-h-0">
+        <div class="card-header mc-panel-header">// TIMMY INTERFACE</div>
+
+        <div class="chat-log flex-grow-1 overflow-auto p-3" id="chat-log">
+          <div class="chat-message agent">
+            <div class="msg-meta">TIMMY // SYSTEM</div>
+            <div class="msg-body">Mission Control initialized. Timmy ready — awaiting input.</div>
+          </div>
+        </div>
+
+        <div class="card-footer mc-chat-footer">
+          <form hx-post="/agents/timmy/chat"
+                hx-target="#chat-log"
+                hx-swap="beforeend"
+                hx-indicator="#send-indicator"
+                hx-sync="this:drop"
+                hx-disabled-elt="find button"
+                hx-on::after-settle="this.reset(); scrollChat()"
+                class="d-flex gap-2">
+            <input type="text"
+                   name="message"
+                   class="form-control mc-input"
+                   placeholder="send a message to timmy..."
+                   autocomplete="off"
+                   autocorrect="off"
+                   autocapitalize="none"
+                   spellcheck="false"
+                   enterkeyhint="send"
+                   required />
+            <button type="submit" class="btn mc-btn-send">
+              SEND
+              <span id="send-indicator" class="htmx-indicator">▋</span>
+            </button>
+          </form>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- System Health (HTMX polled) -->
-  <div class="panel"
-       hx-get="/health/status"
-       hx-trigger="load, every 30s"
-       hx-target="this"
-       hx-swap="innerHTML">
-    <div class="panel-header">// SYSTEM HEALTH</div>
-    <div class="panel-body">
-      <div class="health-row">
-        <span class="health-label">LOADING...</span>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- Chat Panel -->
-<div class="panel chat-panel">
-  <div class="panel-header">// TIMMY INTERFACE</div>
-
-  <div class="chat-log" id="chat-log">
-    <div class="chat-message agent">
-      <div class="msg-meta">TIMMY // SYSTEM</div>
-      <div class="msg-body">Mission Control initialized. Timmy ready — awaiting input.</div>
-    </div>
-  </div>
-
-  <div class="chat-input-bar">
-    <form hx-post="/agents/timmy/chat"
-          hx-target="#chat-log"
-          hx-swap="beforeend"
-          hx-indicator="#send-indicator"
-          hx-sync="this:drop"
-          hx-disabled-elt="find button"
-          hx-on::after-settle="this.reset(); scrollChat()"
-          style="display:flex; flex:1; gap:8px;">
-      <input type="text"
-             name="message"
-             placeholder="send a message to timmy..."
-             autocomplete="off"
-             autocorrect="off"
-             autocapitalize="none"
-             spellcheck="false"
-             enterkeyhint="send"
-             required />
-      <button type="submit">
-        SEND
-        <span id="send-indicator" class="htmx-indicator">▋</span>
-      </button>
-    </form>
   </div>
 </div>
 
