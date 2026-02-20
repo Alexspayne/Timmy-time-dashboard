@@ -108,3 +108,57 @@ def test_chat_timmy_ollama_offline(client):
 def test_chat_timmy_requires_message(client):
     response = client.post("/agents/timmy/chat", data={})
     assert response.status_code == 422
+
+
+# ── History ────────────────────────────────────────────────────────────────────
+
+def test_history_empty_shows_init_message(client):
+    response = client.get("/agents/timmy/history")
+    assert response.status_code == 200
+    assert "Mission Control initialized" in response.text
+
+
+def test_history_records_user_and_agent_messages(client):
+    mock_agent = MagicMock()
+    mock_agent.run.return_value = MagicMock(content="I am operational.")
+
+    with patch("dashboard.routes.agents.create_timmy", return_value=mock_agent):
+        client.post("/agents/timmy/chat", data={"message": "status check"})
+
+    response = client.get("/agents/timmy/history")
+    assert "status check" in response.text
+    assert "I am operational." in response.text
+
+
+def test_history_records_error_when_offline(client):
+    with patch("dashboard.routes.agents.create_timmy", side_effect=Exception("refused")):
+        client.post("/agents/timmy/chat", data={"message": "ping"})
+
+    response = client.get("/agents/timmy/history")
+    assert "ping" in response.text
+    assert "Timmy is offline" in response.text
+
+
+def test_history_clear_resets_to_init_message(client):
+    mock_agent = MagicMock()
+    mock_agent.run.return_value = MagicMock(content="Acknowledged.")
+
+    with patch("dashboard.routes.agents.create_timmy", return_value=mock_agent):
+        client.post("/agents/timmy/chat", data={"message": "hello"})
+
+    response = client.delete("/agents/timmy/history")
+    assert response.status_code == 200
+    assert "Mission Control initialized" in response.text
+
+
+def test_history_empty_after_clear(client):
+    mock_agent = MagicMock()
+    mock_agent.run.return_value = MagicMock(content="OK.")
+
+    with patch("dashboard.routes.agents.create_timmy", return_value=mock_agent):
+        client.post("/agents/timmy/chat", data={"message": "test"})
+
+    client.delete("/agents/timmy/history")
+    response = client.get("/agents/timmy/history")
+    assert "test" not in response.text
+    assert "Mission Control initialized" in response.text
