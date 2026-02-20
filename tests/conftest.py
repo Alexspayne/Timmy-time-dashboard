@@ -18,6 +18,15 @@ for _mod in [
     sys.modules.setdefault(_mod, MagicMock())
 
 
+@pytest.fixture(autouse=True)
+def reset_message_log():
+    """Clear the in-memory chat log before and after every test."""
+    from dashboard.store import message_log
+    message_log.clear()
+    yield
+    message_log.clear()
+
+
 @pytest.fixture
 def client():
     from dashboard.app import app
