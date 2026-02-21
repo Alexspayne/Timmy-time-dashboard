@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,6 +12,18 @@ class Settings(BaseSettings):
 
     # Set DEBUG=true to enable /docs and /redoc (disabled by default)
     debug: bool = False
+
+    # ── AirLLM / backend selection ───────────────────────────────────────────
+    # "ollama"  — always use Ollama (default, safe everywhere)
+    # "airllm"  — always use AirLLM (requires pip install ".[bigbrain]")
+    # "auto"    — use AirLLM on Apple Silicon if airllm is installed,
+    #             fall back to Ollama otherwise
+    timmy_model_backend: Literal["ollama", "airllm", "auto"] = "ollama"
+
+    # AirLLM model size when backend is airllm or auto.
+    # Larger = smarter, but needs more RAM / disk.
+    # 8b  ~16 GB  |  70b  ~140 GB  |  405b  ~810 GB
+    airllm_model_size: Literal["8b", "70b", "405b"] = "70b"
 
     model_config = SettingsConfigDict(
         env_file=".env",

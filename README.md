@@ -138,6 +138,65 @@ timmy status
 
 ---
 
+## Big Brain — AirLLM backend (Apple Silicon / large RAM)
+
+Run 70B or 405B models locally with no GPU required, using AirLLM's
+layer-by-layer loading strategy.  On M-series Macs the MLX backend is
+selected automatically for maximum throughput.  Everything stays local.
+No cloud.  No telemetry.  Sats are sovereignty, boss.
+
+### One-line install
+
+```bash
+pip install ".[bigbrain]"
+# Apple Silicon only — adds the MLX-accelerated backend:
+pip install "airllm[mlx]"
+```
+
+### Run with the big brain
+
+```bash
+# Explicit flag — works anywhere airllm is installed:
+timmy chat "Explain self-custody" --backend airllm --model-size 70b
+
+# Or set it once in .env and forget about it:
+echo "TIMMY_MODEL_BACKEND=auto" >> .env
+echo "AIRLLM_MODEL_SIZE=70b"   >> .env
+timmy chat "What is sovereignty?"
+```
+
+`--backend auto` (or `TIMMY_MODEL_BACKEND=auto`) selects AirLLM automatically
+on Apple Silicon when the package is installed, and falls back to Ollama
+everywhere else — so the same `.env` works on any machine.
+
+### Model sizes
+
+| Flag | Parameters | Approx. RAM needed |
+|------|-----------|-------------------|
+| `8b`   | 8 billion   | ~16 GB  |
+| `70b`  | 70 billion  | ~140 GB |
+| `405b` | 405 billion | ~810 GB |
+
+Models are downloaded from HuggingFace on first run and cached locally.
+You need a HuggingFace account and `huggingface-cli login` for gated models
+(Llama 3.1 requires accepting Meta's license at hf.co/meta-llama).
+
+### Architecture with AirLLM
+
+```
+timmy chat --backend airllm
+    │
+    ▼
+TimmyAirLLMAgent          (src/timmy/backends.py)
+    │
+    ├─ Apple Silicon? ──► AirLLMMLX  (MLX tensors, Metal GPU)
+    └─ Everything else ──► AutoModel  (PyTorch, CPU/CUDA)
+         │
+         └─ Layers loaded on-demand from ~/.cache/huggingface/
+```
+
+---
+
 ## Architecture
 
 ```mermaid

@@ -28,13 +28,20 @@ dev = [
     "pytest-asyncio>=0.24.0",
     "pytest-cov>=5.0.0",
 ]
+# Big-brain: run 8B / 70B / 405B models locally via layer-by-layer loading.
+# pip install ".[bigbrain]"
+# On Apple Silicon: pip install "airllm[mlx]" for the MLX-accelerated backend.
+bigbrain = [
+    "airllm>=2.9.0",
+]
 
 [project.scripts]
 timmy = "timmy.cli:main"
+self-tdd = "self_tdd.watchdog:main"
 
 [tool.hatch.build.targets.wheel]
 sources = {"src" = ""}
-include = ["src/timmy", "src/dashboard", "src/config.py"]
+include = ["src/timmy", "src/dashboard", "src/config.py", "src/self_tdd"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
