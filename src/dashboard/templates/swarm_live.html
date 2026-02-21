@@ -176,7 +176,14 @@ function addLog(message, type = 'info') {
     
     const entry = document.createElement('div');
     entry.style.marginBottom = '4px';
-    entry.innerHTML = `<span style="color: var(--text-muted);">[${timestamp}]</span> <span style="color: ${color};">${message}</span>`;
+    const tsSpan = _el('span');
+    tsSpan.style.color = 'var(--text-muted)';
+    _t(tsSpan, '[' + timestamp + '] ');
+    const msgSpan = _el('span');
+    msgSpan.style.color = color;
+    _t(msgSpan, message);
+    entry.appendChild(tsSpan);
+    entry.appendChild(msgSpan);
     
     log.appendChild(entry);
     log.scrollTop = log.scrollHeight;

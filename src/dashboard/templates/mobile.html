@@ -193,12 +193,17 @@ async function sendMobileMessage(event) {
             chat.scrollTop = chat.scrollHeight;
         }
     } catch (e) {
-        chat.innerHTML += `
-            <div class="chat-message timmy">
-                <div class="chat-meta">Timmy</div>
-                <div style="color: var(--danger);">Sorry, I couldn't process that. Try again?</div>
-            </div>
-        `;
+        const errDiv = document.createElement('div');
+        errDiv.className = 'chat-message timmy';
+        const errMeta = document.createElement('div');
+        errMeta.className = 'chat-meta';
+        errMeta.textContent = 'Timmy';
+        const errText = document.createElement('div');
+        errText.style.color = 'var(--danger)';
+        errText.textContent = 'Sorry, I could not process that. Try again?';
+        errDiv.appendChild(errMeta);
+        errDiv.appendChild(errText);
+        chat.appendChild(errDiv);
         chat.scrollTop = chat.scrollHeight;
     }
 }
