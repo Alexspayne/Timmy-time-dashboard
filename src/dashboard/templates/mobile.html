@@ -159,13 +159,17 @@ async function sendMobileMessage(event) {
     
     const chat = document.getElementById('mobile-chat');
     
-    // Add user message
-    chat.innerHTML += `
-        <div class="chat-message user">
-            <div class="chat-meta">You</div>
-            <div>${message}</div>
-        </div>
-    `;
+    // Add user message — use DOM methods to avoid XSS
+    const userDiv = document.createElement('div');
+    userDiv.className = 'chat-message user';
+    const userMeta = document.createElement('div');
+    userMeta.className = 'chat-meta';
+    userMeta.textContent = 'You';
+    const userText = document.createElement('div');
+    userText.textContent = message;  // textContent escapes HTML
+    userDiv.appendChild(userMeta);
+    userDiv.appendChild(userText);
+    chat.appendChild(userDiv);
     chat.scrollTop = chat.scrollHeight;
     
     input.value = '';
