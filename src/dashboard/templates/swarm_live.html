@@ -56,7 +56,7 @@ const maxReconnectInterval = 30000;
 
 function connect() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    ws = new WebSocket(`${protocol}//${window.location.host}/swarm/ws`);
+    ws = new WebSocket(`${protocol}//${window.location.host}/swarm/live`);
     
     ws.onopen = function() {
         console.log('WebSocket connected');
@@ -88,20 +88,48 @@ function connect() {
 }
 
 function handleMessage(message) {
+    // Handle structured state snapshots (initial_state / state_update)
     if (message.type === 'initial_state' || message.type === 'state_update') {
         const data = message.data;
-        
-        // Update stats
         document.getElementById('stat-agents').textContent = data.agents.total;
         document.getElementById('stat-active').textContent = data.agents.active;
         document.getElementById('stat-tasks').textContent = data.tasks.active;
-        
-        // Update agents list
         updateAgentsList(data.agents.list);
-        
-        // Update auctions list
         updateAuctionsList(data.auctions.list);
+        return;
     }
+
+    // Handle individual swarm events broadcast by ws_manager
+    const evt = message.event || message.type || '';
+    const data = message.data || message;
+
+    if (evt === 'agent_joined') {
+        addLog('Agent joined: ' + (data.name || data.agent_id || ''), 'success');
+        refreshStats();
+    } else if (evt === 'agent_left') {
+        addLog('Agent left: ' + (data.name || data.agent_id || ''), 'warning');
+        refreshStats();
+    } else if (evt === 'task_posted') {
+        addLog('Task posted: ' + (data.description || data.task_id || '').slice(0, 60), 'info');
+        refreshStats();
+    } else if (evt === 'bid_submitted') {
+        addLog('Bid: ' + (data.agent_id || '').slice(0, 8) + ' bid ' + (data.bid_sats || '?') + ' sats', 'info');
+    } else if (evt === 'task_assigned') {
+        addLog('Task assigned to ' + (data.agent_id || '').slice(0, 8), 'success');
+        refreshStats();
+    } else if (evt === 'task_completed') {
+        addLog('Task completed by ' + (data.agent_id || '').slice(0, 8), 'success');
+        refreshStats();
+    }
+}
+
+function refreshStats() {
+    // Fetch current swarm status via REST and update the stat counters
+    fetch('/swarm').then(r => r.json()).then(data => {
+        document.getElementById('stat-agents').textContent = data.agents || 0;
+        document.getElementById('stat-active').textContent = data.agents_busy || 0;
+        document.getElementById('stat-tasks').textContent = (data.tasks_pending || 0) + (data.tasks_running || 0);
+    }).catch(() => {});
 }
 
 // Safe text setter — avoids XSS when inserting user/server data into DOM

@@ -24,6 +24,15 @@ async def swarm_status():
     return coordinator.status()
 
 
+@router.get("/live", response_class=HTMLResponse)
+async def swarm_live_page(request: Request):
+    """Render the live swarm dashboard page."""
+    return templates.TemplateResponse(
+        "swarm_live.html",
+        {"request": request, "page_title": "Swarm Live"},
+    )
+
+
 @router.get("/agents")
 async def list_swarm_agents():
     """List all registered swarm agents."""
