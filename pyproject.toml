@@ -31,10 +31,11 @@ dev = [
 
 [project.scripts]
 timmy = "timmy.cli:main"
+self-tdd = "self_tdd.watchdog:main"
 
 [tool.hatch.build.targets.wheel]
 sources = {"src" = ""}
-include = ["src/timmy", "src/dashboard", "src/config.py"]
+include = ["src/timmy", "src/dashboard", "src/config.py", "src/self_tdd"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
