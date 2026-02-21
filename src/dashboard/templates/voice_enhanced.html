@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .wave-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        height: 60px;
+        margin: 20px 0;
+    }
+    
+    .wave-bar {
+        width: 4px;
+        background: var(--accent);
+        border-radius: 2px;
+        animation: wave 1s ease-in-out infinite;
+    }
+    
+    .wave-bar:nth-child(1) { animation-delay: 0s; height: 20%; }
+    .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 40%; }
+    .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 60%; }
+    .wave-bar:nth-child(4) { animation-delay: 0.3s; height: 80%; }
+    .wave-bar:nth-child(5) { animation-delay: 0.4s; height: 100%; }
+    .wave-bar:nth-child(6) { animation-delay: 0.3s; height: 80%; }
+    .wave-bar:nth-child(7) { animation-delay: 0.2s; height: 60%; }
+    .wave-bar:nth-child(8) { animation-delay: 0.1s; height: 40%; }
+    .wave-bar:nth-child(9) { animation-delay: 0s; height: 20%; }
+    
+    @keyframes wave {
+        0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
+        50% { transform: scaleY(1); opacity: 1; }
+    }
+    
+    .wave-container:not(.listening) .wave-bar {
+        animation: none;
+        height: 10%;
+        opacity: 0.3;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header" style="text-align: center;">
+        <h2 class="card-title">🎙️ Enhanced Voice Control</h2>
+        <p style="color: var(--text-secondary);">Natural language with audio responses</p>
+    </div>
+    
+    <div class="wave-container" id="wave-container">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+    </div>
+    
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button class="btn btn-primary" id="start-btn" onclick="startRecording()" style="padding: 15px 40px; font-size: 1.125rem;">
+            🎤 Start Recording
+        </button>
+        <button class="btn btn-danger" id="stop-btn" onclick="stopRecording()" style="display: none; padding: 15px 40px; font-size: 1.125rem;">
+            ⏹ Stop Recording
+        </button>
+    </div>
+    
+    <div id="status-text" style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">
+        Click Start to begin
+    </div>
+    
+    <div id="result-container" style="display: none;">
+        <div style="background: var(--bg-tertiary); padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+            <strong style="color: var(--text-muted);">You said:</strong>
+            <p id="user-text" style="margin-top: 8px;"></p>
+        </div>
+        <div style="background: var(--bg-tertiary); padding: 16px; border-radius: 8px; border-left: 3px solid var(--accent);">
+            <strong style="color: var(--accent);">Timmy:</strong>
+            <p id="timmy-text" style="margin-top: 8px;"></p>
+        </div>
+        <audio id="audio-player" controls style="width: 100%; margin-top: 12px; display: none;"></audio>
+    </div>
+</div>
+
+<script>
+let recognition = null;
+let isRecording = false;
+
+// Initialize speech recognition
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    
+    recognition.onstart = function() {
+        isRecording = true;
+        document.getElementById('start-btn').style.display = 'none';
+        document.getElementById('stop-btn').style.display = 'inline-flex';
+        document.getElementById('wave-container').classList.add('listening');
+        document.getElementById('status-text').textContent = 'Listening...';
+    };
+    
+    recognition.onresult = function(event) {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+            }
+        }
+        if (finalTranscript) {
+            processCommand(finalTranscript);
+        }
+    };
+    
+    recognition.onerror = function(event) {
+        console.error('Speech error:', event.error);
+        document.getElementById('status-text').textContent = 'Error: ' + event.error;
+        stopRecording();
+    };
+    
+    recognition.onend = function() {
+        if (isRecording) {
+            stopRecording();
+        }
+    };
+} else {
+    document.getElementById('status-text').textContent = 'Speech recognition not supported';
+    document.getElementById('start-btn').disabled = true;
+}
+
+function startRecording() {
+    if (recognition) {
+        recognition.start();
+    }
+}
+
+function stopRecording() {
+    isRecording = false;
+    if (recognition) {
+        recognition.stop();
+    }
+    document.getElementById('start-btn').style.display = 'inline-flex';
+    document.getElementById('stop-btn').style.display = 'none';
+    document.getElementById('wave-container').classList.remove('listening');
+    document.getElementById('status-text').textContent = 'Processing...';
+}
+
+async function processCommand(text) {
+    document.getElementById('user-text').textContent = text;
+    
+    try {
+        const response = await fetch('/voice/enhanced', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `text=${encodeURIComponent(text)}`
+        });
+        
+        const data = await response.json();
+        
+        document.getElementById('timmy-text').textContent = data.response_text;
+        document.getElementById('result-container').style.display = 'block';
+        document.getElementById('status-text').textContent = 'Done!';
+        
+        // Play audio if available
+        if (data.audio_url) {
+            const audio = document.getElementById('audio-player');
+            audio.src = data.audio_url;
+            audio.style.display = 'block';
+            audio.play();
+        } else {
+            // Fallback to browser TTS
+            const utterance = new SpeechSynthesisUtterance(data.response_text);
+            utterance.rate = 1.1;
+            window.speechSynthesis.speak(utterance);
+        }
+        
+    } catch (e) {
+        document.getElementById('timmy-text').textContent = 'Sorry, I had trouble with that.';
+        document.getElementById('result-container').style.display = 'block';
+        document.getElementById('status-text').textContent = 'Error';
+    }
+}
+</script>
+{% endblock %}

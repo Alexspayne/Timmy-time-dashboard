@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header">
+        <h2 class="card-title">➕ Create New Task</h2>
+        <p style="color: var(--text-secondary);">Agents will bid to complete this task</p>
+    </div>
+    
+    <form hx-post="/agents/swarm/task/create" hx-target="#task-result" hx-swap="innerHTML">
+        <div class="form-group">
+            <label class="form-label">Task Title *</label>
+            <input type="text" name="title" placeholder="e.g., Research latest Bitcoin developments" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea name="description" rows="3" placeholder="Detailed description of what needs to be done..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Required Capabilities (comma-separated)</label>
+            <input type="text" name="requirements" placeholder="web_search, research, writing">
+            <small style="color: var(--text-muted);">Agents with these capabilities will be eligible to bid</small>
+        </div>
+        
+        <div class="grid grid-3">
+            <div class="form-group">
+                <label class="form-label">Min Bid (sats)</label>
+                <input type="number" name="min_bid" value="1" min="1">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Max Bid (sats)</label>
+                <input type="number" name="max_bid" value="1000" min="1">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Priority (1-5)</label>
+                <select name="priority">
+                    <option value="1">1 - Low</option>
+                    <option value="2">2</option>
+                    <option value="3" selected>3 - Normal</option>
+                    <option value="4">4</option>
+                    <option value="5">5 - Urgent</option>
+                </select>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; margin-top: 20px;">
+            <a href="/agents/timmy/chat" class="btn btn-secondary" style="flex: 1;">Cancel</a>
+            <button type="submit" class="btn btn-primary" style="flex: 2;">
+                Create Task & Start Auction
+            </button>
+        </div>
+    </form>
+    
+    <div id="task-result" style="margin-top: 20px;"></div>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 20px auto 0;">
+    <div class="card-header">
+        <h2 class="card-title">How Auctions Work</h2>
+    </div>
+    <ol style="color: var(--text-secondary); line-height: 2; padding-left: 20px;">
+        <li>You create a task with requirements</li>
+        <li>A 15-second auction begins automatically</li>
+        <li>Eligible agents place bids in satoshis</li>
+        <li>The lowest bid wins the task</li>
+        <li>The winning agent completes the task and earns the sats</li>
+    </ol>
+</div>
+{% endblock %}
