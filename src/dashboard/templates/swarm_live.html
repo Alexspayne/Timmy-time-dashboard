@@ -104,50 +104,69 @@ function handleMessage(message) {
     }
 }
 
+// Safe text setter — avoids XSS when inserting user/server data into DOM
+function _t(el, text) { el.textContent = text; return el; }
+function _el(tag, cls) { const e = document.createElement(tag); if (cls) e.className = cls; return e; }
+
 function updateAgentsList(agents) {
     const container = document.getElementById('agents-list');
-    
+    container.innerHTML = '';
+
     if (!agents || agents.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-muted);">No agents registered</p>';
+        const p = _el('p'); p.style.color = 'var(--text-muted)';
+        _t(p, 'No agents registered');
+        container.appendChild(p);
         return;
     }
-    
-    container.innerHTML = agents.map(agent => `
-        <div class="agent-card">
-            <div class="agent-avatar">${agent.name.charAt(0).toUpperCase()}</div>
-            <div class="agent-info">
-                <div class="agent-name">${agent.name}</div>
-                <div class="agent-meta">${agent.description || 'No description'}</div>
-                <div class="agent-meta">
-                    <span class="badge badge-${agent.status === 'active' ? 'success' : agent.status === 'busy' ? 'warning' : 'danger'}">${agent.status}</span>
-                    ${agent.min_bid} sats min bid
-                    | ${agent.tasks_completed} tasks
-                    | ${agent.total_earned} sats earned
-                </div>
-            </div>
-        </div>
-    `).join('');
+
+    agents.forEach(agent => {
+        const card = _el('div', 'agent-card');
+        const avatar = _el('div', 'agent-avatar');
+        _t(avatar, (agent.name || '?').charAt(0).toUpperCase());
+        const info = _el('div', 'agent-info');
+        const name = _el('div', 'agent-name');
+        _t(name, agent.name || '');
+        const desc = _el('div', 'agent-meta');
+        _t(desc, agent.description || 'No description');
+        const meta = _el('div', 'agent-meta');
+        const badge = _el('span', `badge badge-${agent.status === 'active' ? 'success' : agent.status === 'busy' ? 'warning' : 'danger'}`);
+        _t(badge, agent.status || '');
+        const stats = _el('span');
+        _t(stats, ` ${agent.min_bid ?? 0} sats min bid | ${agent.tasks_completed ?? 0} tasks | ${agent.total_earned ?? 0} sats earned`);
+        meta.appendChild(badge);
+        meta.appendChild(stats);
+        info.appendChild(name);
+        info.appendChild(desc);
+        info.appendChild(meta);
+        card.appendChild(avatar);
+        card.appendChild(info);
+        container.appendChild(card);
+    });
 }
 
 function updateAuctionsList(auctions) {
     const container = document.getElementById('auctions-list');
-    
+    container.innerHTML = '';
+
     if (!auctions || auctions.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-muted);">No active auctions</p>';
+        const p = _el('p'); p.style.color = 'var(--text-muted)';
+        _t(p, 'No active auctions');
+        container.appendChild(p);
         return;
     }
-    
-    container.innerHTML = auctions.map(auction => `
-        <div class="agent-card">
-            <div class="agent-info">
-                <div class="agent-name">Task ${auction.task_id.slice(0, 8)}</div>
-                <div class="agent-meta">
-                    ${Math.round(auction.time_remaining)}s remaining
-                    | ${auction.bid_count} bids
-                </div>
-            </div>
-        </div>
-    `).join('');
+
+    auctions.forEach(auction => {
+        const card = _el('div', 'agent-card');
+        const info = _el('div', 'agent-info');
+        const name = _el('div', 'agent-name');
+        _t(name, 'Task ' + String(auction.task_id || '').slice(0, 8));
+        const meta = _el('div', 'agent-meta');
+        _t(meta, `${Math.round(auction.time_remaining ?? 0)}s remaining | ${auction.bid_count ?? 0} bids`);
+        info.appendChild(name);
+        info.appendChild(meta);
+        card.appendChild(info);
+        container.appendChild(card);
+    });
 }
 
 function addLog(message, type = 'info') {

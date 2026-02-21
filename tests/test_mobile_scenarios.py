@@ -279,3 +279,55 @@ def test_M605_health_status_passes_model_to_template(client):
     # The default model is llama3.2 — it should appear in the partial from settings, not hardcoded
     assert response.status_code == 200
     assert "llama3.2" in response.text  # rendered via template variable, not hardcoded literal
+
+
+# ── M7xx — XSS prevention ─────────────────────────────────────────────────────
+
+def _mobile_html() -> str:
+    """Read the mobile template source."""
+    path = Path(__file__).parent.parent / "src" / "dashboard" / "templates" / "mobile.html"
+    return path.read_text()
+
+
+def _swarm_live_html() -> str:
+    """Read the swarm live template source."""
+    path = Path(__file__).parent.parent / "src" / "dashboard" / "templates" / "swarm_live.html"
+    return path.read_text()
+
+
+def test_M701_mobile_chat_no_raw_message_interpolation():
+    """mobile.html must not interpolate ${message} directly into innerHTML — XSS risk."""
+    html = _mobile_html()
+    # The vulnerable pattern is `${message}` inside a template literal assigned to innerHTML
+    # After the fix, message must only appear via textContent assignment
+    assert "textContent = message" in html or "textContent=message" in html, (
+        "mobile.html still uses innerHTML + ${message} interpolation — XSS vulnerability"
+    )
+
+
+def test_M702_mobile_chat_user_input_not_in_innerhtml_template_literal():
+    """${message} must not appear inside a backtick string that is assigned to innerHTML."""
+    html = _mobile_html()
+    # Find all innerHTML += `...` blocks and verify none contain ${message}
+    blocks = re.findall(r"innerHTML\s*\+=?\s*`([^`]*)`", html, re.DOTALL)
+    for block in blocks:
+        assert "${message}" not in block, (
+            "innerHTML template literal still contains ${message} — XSS vulnerability"
+        )
+
+
+def test_M703_swarm_live_agent_name_not_interpolated_in_innerhtml():
+    """swarm_live.html must not put ${agent.name} inside innerHTML template literals."""
+    html = _swarm_live_html()
+    blocks = re.findall(r"innerHTML\s*=\s*agents\.map\([^;]+\)\.join\([^)]*\)", html, re.DOTALL)
+    assert len(blocks) == 0, (
+        "swarm_live.html still uses innerHTML=agents.map(…) with interpolated agent data — XSS vulnerability"
+    )
+
+
+def test_M704_swarm_live_uses_textcontent_for_agent_data():
+    """swarm_live.html must use textContent (not innerHTML) to set agent name/description."""
+    html = _swarm_live_html()
+    assert "textContent" in html, (
+        "swarm_live.html does not use textContent — agent data may be raw-interpolated into DOM"
+    )
