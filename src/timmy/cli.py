@@ -1,6 +1,7 @@
 import typer
 
 from timmy.agent import create_timmy
+from timmy.prompts import TIMMY_STATUS_PROMPT
 
 app = typer.Typer(help="Timmy — sovereign AI agent")
 
@@ -23,7 +24,7 @@ def chat(message: str = typer.Argument(..., help="Message to send")):
 def status():
     """Print Timmy's operational status."""
     timmy = create_timmy()
-    timmy.print_response("Brief status report — one sentence.", stream=False)
+    timmy.print_response(TIMMY_STATUS_PROMPT, stream=False)
 
 
 def main():
