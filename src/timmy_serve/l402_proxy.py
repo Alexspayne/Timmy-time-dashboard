@@ -22,9 +22,15 @@ from timmy_serve.payment_handler import payment_handler
 
 logger = logging.getLogger(__name__)
 
-_MACAROON_SECRET = os.environ.get(
-    "L402_MACAROON_SECRET", "timmy-macaroon-secret"
-).encode()
+_MACAROON_SECRET_DEFAULT = "timmy-macaroon-secret"
+_MACAROON_SECRET_RAW = os.environ.get("L402_MACAROON_SECRET", _MACAROON_SECRET_DEFAULT)
+_MACAROON_SECRET = _MACAROON_SECRET_RAW.encode()
+
+if _MACAROON_SECRET_RAW == _MACAROON_SECRET_DEFAULT:
+    logger.warning(
+        "SEC: L402_MACAROON_SECRET is using the default value — set a unique "
+        "secret in .env before deploying to production."
+    )
 
 
 @dataclass

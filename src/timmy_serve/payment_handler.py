@@ -20,7 +20,15 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 # Secret key for HMAC-based invoice verification (mock mode)
-_HMAC_SECRET = os.environ.get("L402_HMAC_SECRET", "timmy-sovereign-sats").encode()
+_HMAC_SECRET_DEFAULT = "timmy-sovereign-sats"
+_HMAC_SECRET_RAW = os.environ.get("L402_HMAC_SECRET", _HMAC_SECRET_DEFAULT)
+_HMAC_SECRET = _HMAC_SECRET_RAW.encode()
+
+if _HMAC_SECRET_RAW == _HMAC_SECRET_DEFAULT:
+    logger.warning(
+        "SEC: L402_HMAC_SECRET is using the default value — set a unique "
+        "secret in .env before deploying to production."
+    )
 
 
 @dataclass
