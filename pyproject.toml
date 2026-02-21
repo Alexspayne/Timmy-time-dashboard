@@ -28,6 +28,12 @@ dev = [
     "pytest-asyncio>=0.24.0",
     "pytest-cov>=5.0.0",
 ]
+# Big-brain: run 8B / 70B / 405B models locally via layer-by-layer loading.
+# pip install ".[bigbrain]"
+# On Apple Silicon: pip install "airllm[mlx]" for the MLX-accelerated backend.
+bigbrain = [
+    "airllm>=2.9.0",
+]
 
 [project.scripts]
 timmy = "timmy.cli:main"

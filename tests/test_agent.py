@@ -77,3 +77,77 @@ def test_create_timmy_embeds_system_prompt():
 
         kwargs = MockAgent.call_args.kwargs
         assert kwargs["description"] == TIMMY_SYSTEM_PROMPT
+
+
+# ── AirLLM path ──────────────────────────────────────────────────────────────
+
+def test_create_timmy_airllm_returns_airllm_agent():
+    """backend='airllm' must return a TimmyAirLLMAgent, not an Agno Agent."""
+    with patch("timmy.backends.is_apple_silicon", return_value=False):
+        from timmy.agent import create_timmy
+        from timmy.backends import TimmyAirLLMAgent
+
+        result = create_timmy(backend="airllm", model_size="8b")
+
+    assert isinstance(result, TimmyAirLLMAgent)
+
+
+def test_create_timmy_airllm_does_not_call_agno_agent():
+    """When using the airllm backend, Agno Agent should never be instantiated."""
+    with patch("timmy.agent.Agent") as MockAgent, \
+         patch("timmy.backends.is_apple_silicon", return_value=False):
+
+        from timmy.agent import create_timmy
+        create_timmy(backend="airllm", model_size="8b")
+
+    MockAgent.assert_not_called()
+
+
+def test_create_timmy_explicit_ollama_ignores_autodetect():
+    """backend='ollama' must always use Ollama, even on Apple Silicon."""
+    with patch("timmy.agent.Agent") as MockAgent, \
+         patch("timmy.agent.Ollama"), \
+         patch("timmy.agent.SqliteDb"):
+
+        from timmy.agent import create_timmy
+        create_timmy(backend="ollama")
+
+    MockAgent.assert_called_once()
+
+
+# ── _resolve_backend ─────────────────────────────────────────────────────────
+
+def test_resolve_backend_explicit_takes_priority():
+    from timmy.agent import _resolve_backend
+    assert _resolve_backend("airllm") == "airllm"
+    assert _resolve_backend("ollama") == "ollama"
+
+
+def test_resolve_backend_defaults_to_ollama_without_config():
+    """Default config (timmy_model_backend='ollama') → 'ollama'."""
+    from timmy.agent import _resolve_backend
+    assert _resolve_backend(None) == "ollama"
+
+
+def test_resolve_backend_auto_uses_airllm_on_apple_silicon():
+    """'auto' on Apple Silicon with airllm stubbed → 'airllm'."""
+    with patch("timmy.backends.is_apple_silicon", return_value=True), \
+         patch("timmy.agent.settings") as mock_settings:
+        mock_settings.timmy_model_backend = "auto"
+        mock_settings.airllm_model_size = "70b"
+        mock_settings.ollama_model = "llama3.2"
+
+        from timmy.agent import _resolve_backend
+        assert _resolve_backend(None) == "airllm"
+
+
+def test_resolve_backend_auto_falls_back_on_non_apple():
+    """'auto' on non-Apple Silicon → 'ollama'."""
+    with patch("timmy.backends.is_apple_silicon", return_value=False), \
+         patch("timmy.agent.settings") as mock_settings:
+        mock_settings.timmy_model_backend = "auto"
+        mock_settings.airllm_model_size = "70b"
+        mock_settings.ollama_model = "llama3.2"
+
+        from timmy.agent import _resolve_backend
+        assert _resolve_backend(None) == "ollama"

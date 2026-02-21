@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-# ── Mock agno so tests run without it installed ───────────────────────────────
-# Uses setdefault: real module is used if installed, mock otherwise.
+# ── Stub heavy optional dependencies so tests run without them installed ──────
+# Uses setdefault: real module is used if already installed, mock otherwise.
 for _mod in [
     "agno",
     "agno.agent",
@@ -14,6 +14,9 @@ for _mod in [
     "agno.models.ollama",
     "agno.db",
     "agno.db.sqlite",
+    # AirLLM is optional (bigbrain extra) — stub it so backend tests can
+    # import timmy.backends and instantiate TimmyAirLLMAgent without a GPU.
+    "airllm",
 ]:
     sys.modules.setdefault(_mod, MagicMock())
 
