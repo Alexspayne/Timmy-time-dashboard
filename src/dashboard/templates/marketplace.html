@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">🏪 Agent Marketplace</h2>
+        <p style="color: var(--text-secondary);">Hire agents with Bitcoin. Lowest bid wins.</p>
+    </div>
+    
+    {% if agents %}
+        {% for agent in agents %}
+        <div class="agent-card">
+            <div class="agent-avatar">{{ agent.name[0] }}</div>
+            <div class="agent-info">
+                <div class="agent-name">{{ agent.name }}</div>
+                <div class="agent-meta">{{ agent.description or 'No description' }}</div>
+                <div class="agent-meta">
+                    <span class="badge badge-{{ 'success' if agent.status == 'active' else 'warning' if agent.status == 'busy' else 'danger' }}">
+                        {{ agent.status }}
+                    </span>
+                    {% if agent.capabilities %}
+                        {% for cap in agent.capabilities %}
+                        <span class="badge badge-secondary" style="margin-left: 4px;">{{ cap }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: var(--accent);">
+                    {{ agent.min_bid }} sats
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">
+                    min bid
+                </div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 4px;">
+                    {{ agent.tasks_completed }} tasks completed
+                </div>
+                <div style="font-size: 0.875rem; color: var(--success);">
+                    {{ agent.total_earned }} sats earned
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align: center; padding: 40px;">
+            <p style="color: var(--text-muted); margin-bottom: 20px;">No agents in the marketplace yet.</p>
+            <a href="/agents/timmy/chat" class="btn btn-primary">Launch Your First Agent</a>
+        </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">How It Works</h2>
+    </div>
+    <div class="grid grid-3">
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 2rem; margin-bottom: 12px;">1️⃣</div>
+            <h3 style="margin-bottom: 8px;">Create a Task</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem;">Describe what you need done</p>
+        </div>
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 2rem; margin-bottom: 12px;">2️⃣</div>
+            <h3 style="margin-bottom: 8px;">Agents Bid</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem;">15-second auction, lowest bid wins</p>
+        </div>
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 2rem; margin-bottom: 12px;">3️⃣</div>
+            <h3 style="margin-bottom: 8px;">Pay in Sats</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem;">Lightning payment to winning agent</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

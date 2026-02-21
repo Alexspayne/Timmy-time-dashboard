@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+    @media (min-width: 769px) {
+        .mobile-only { display: none; }
+    }
+    
+    .mobile-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--bg-tertiary);
+        display: flex;
+        justify-content: space-around;
+        padding: 12px 0;
+        z-index: 100;
+    }
+    
+    .mobile-nav a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .mobile-nav a.active {
+        color: var(--accent);
+    }
+    
+    .mobile-nav-icon {
+        font-size: 1.5rem;
+    }
+    
+    .touch-button {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mobile-only">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">🎙️ Quick Actions</h2>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+            <a href="/voice/button" class="btn btn-primary touch-button">
+                🎤 Voice
+            </a>
+            <a href="/swarm/task/create" class="btn btn-secondary touch-button">
+                ➕ Task
+            </a>
+            <a href="/swarm/live" class="btn btn-secondary touch-button">
+                📊 Swarm
+            </a>
+            <a href="/marketplace" class="btn btn-secondary touch-button">
+                🏪 Market
+            </a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">💬 Chat with Timmy</h2>
+        </div>
+        <div id="mobile-chat" class="chat-container" style="height: 300px;">
+            <div class="chat-message timmy">
+                <div class="chat-meta">Timmy</div>
+                <div>Sir, Timmy here. Ready for your command.</div>
+            </div>
+        </div>
+        <form onsubmit="sendMobileMessage(event)">
+            <div style="display: flex; gap: 12px;">
+                <input type="text" id="mobile-message" placeholder="Message Timmy..." 
+                       style="flex: 1;" required autocomplete="off">
+                <button type="submit" class="btn btn-primary touch-button">Send</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">🤖 Your Agents</h2>
+        </div>
+        {% if agents %}
+            {% for agent in agents[:3] %}
+            <div class="agent-card">
+                <div class="agent-avatar">{{ agent.name[0] }}</div>
+                <div class="agent-info">
+                    <div class="agent-name">{{ agent.name }}</div>
+                    <div class="agent-meta">
+                        <span class="badge badge-{{ 'success' if agent.status == 'active' else 'warning' if agent.status == 'busy' else 'danger' }}">
+                            {{ agent.status }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: var(--text-muted); text-align: center; padding: 20px;">
+                No agents yet. Launch one from Mission Control.
+            </p>
+        {% endif %}
+    </div>
+    
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav">
+        <a href="/mobile" class="active">
+            <span class="mobile-nav-icon">🏠</span>
+            <span>Home</span>
+        </a>
+        <a href="/agents/timmy/chat">
+            <span class="mobile-nav-icon">💬</span>
+            <span>Chat</span>
+        </a>
+        <a href="/swarm/live">
+            <span class="mobile-nav-icon">📊</span>
+            <span>Swarm</span>
+        </a>
+        <a href="/marketplace">
+            <span class="mobile-nav-icon">🏪</span>
+            <span>Market</span>
+        </a>
+    </nav>
+    
+    <div style="height: 80px;"></div> <!-- Spacer for bottom nav -->
+</div>
+
+<div class="desktop-message" style="text-align: center; padding: 60px;">
+    <p style="font-size: 3rem; margin-bottom: 20px;">📱</p>
+    <h2 style="margin-bottom: 16px;">Mobile Dashboard</h2>
+    <p style="color: var(--text-secondary);">
+        This page is optimized for mobile devices.<br>
+        Please visit on your iPhone or use the desktop dashboard.
+    </p>
+    <a href="/agents/timmy/chat" class="btn btn-primary" style="margin-top: 20px;">
+        Go to Desktop Dashboard
+    </a>
+</div>
+
+<script>
+// Simple mobile chat
+async function sendMobileMessage(event) {
+    event.preventDefault();
+    const input = document.getElementById('mobile-message');
+    const message = input.value.trim();
+    if (!message) return;
+    
+    const chat = document.getElementById('mobile-chat');
+    
+    // Add user message
+    chat.innerHTML += `
+        <div class="chat-message user">
+            <div class="chat-meta">You</div>
+            <div>${message}</div>
+        </div>
+    `;
+    chat.scrollTop = chat.scrollHeight;
+    
+    input.value = '';
+    
+    // Send to server
+    try {
+        const response = await fetch('/agents/timmy/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `message=${encodeURIComponent(message)}`
+        });
+        const html = await response.text();
+        
+        // Extract Timmy's response from HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const timmyResponse = doc.querySelector('.chat-message.timmy');
+        
+        if (timmyResponse) {
+            chat.appendChild(timmyResponse.cloneNode(true));
+            chat.scrollTop = chat.scrollHeight;
+        }
+    } catch (e) {
+        chat.innerHTML += `
+            <div class="chat-message timmy">
+                <div class="chat-meta">Timmy</div>
+                <div style="color: var(--danger);">Sorry, I couldn't process that. Try again?</div>
+            </div>
+        `;
+        chat.scrollTop = chat.scrollHeight;
+    }
+}
+</script>
+{% endblock %}

@@ -10,6 +10,12 @@ from config import settings
 from dashboard.routes.agents import router as agents_router
 from dashboard.routes.health import router as health_router
 from dashboard.routes.mobile_test import router as mobile_test_router
+from dashboard.routes.swarm import router as swarm_router
+from dashboard.routes.marketplace import router as marketplace_router
+from dashboard.routes.voice import router as voice_router
+from dashboard.routes.voice_enhanced import router as voice_enhanced_router
+from dashboard.routes.mobile import router as mobile_router
+from dashboard.routes.swarm_ws import router as swarm_ws_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -35,8 +41,21 @@ app.mount("/static", StaticFiles(directory=str(PROJECT_ROOT / "static")), name="
 app.include_router(health_router)
 app.include_router(agents_router)
 app.include_router(mobile_test_router)
+app.include_router(swarm_router)
+app.include_router(marketplace_router)
+app.include_router(voice_router)
+app.include_router(voice_enhanced_router)
+app.include_router(mobile_router)
+app.include_router(swarm_ws_router)
 
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse(request, "index.html")
+
+
+@app.get("/shortcuts/setup")
+async def shortcuts_setup():
+    """Siri Shortcuts setup guide."""
+    from shortcuts.siri import get_setup_guide
+    return get_setup_guide()
