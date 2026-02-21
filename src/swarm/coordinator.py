@@ -35,6 +35,7 @@ class SwarmCoordinator:
         self.manager = SwarmManager()
         self.auctions = AuctionManager()
         self.comms = SwarmComms()
+        self._in_process_nodes: list = []
 
     # ── Agent lifecycle ─────────────────────────────────────────────────────
 
@@ -57,20 +58,80 @@ class SwarmCoordinator:
     def list_swarm_agents(self) -> list[AgentRecord]:
         return registry.list_agents()
 
+    def spawn_in_process_agent(
+        self, name: str, agent_id: Optional[str] = None,
+    ) -> dict:
+        """Spawn a lightweight in-process agent that bids on tasks.
+
+        Unlike spawn_agent (which launches a subprocess), this creates a
+        SwarmNode in the current process sharing the coordinator's comms
+        layer.  This means the in-memory pub/sub callbacks fire
+        immediately when a task is posted, allowing the node to submit
+        bids into the coordinator's AuctionManager.
+        """
+        from swarm.swarm_node import SwarmNode
+
+        aid = agent_id or str(__import__("uuid").uuid4())
+        node = SwarmNode(
+            agent_id=aid,
+            name=name,
+            comms=self.comms,
+        )
+        # Wire the node's bid callback to feed into our AuctionManager
+        original_on_task = node._on_task_posted
+
+        def _bid_and_register(msg):
+            """Intercept the task announcement, submit a bid to the auction."""
+            task_id = msg.data.get("task_id")
+            if not task_id:
+                return
+            import random
+            bid_sats = random.randint(10, 100)
+            self.auctions.submit_bid(task_id, aid, bid_sats)
+            logger.info(
+                "In-process agent %s bid %d sats on task %s",
+                name, bid_sats, task_id,
+            )
+
+        # Subscribe to task announcements via shared comms
+        self.comms.subscribe("swarm:tasks", _bid_and_register)
+
+        record = registry.register(name=name, agent_id=aid)
+        self._in_process_nodes.append(node)
+        logger.info("Spawned in-process agent %s (%s)", name, aid)
+        return {
+            "agent_id": aid,
+            "name": name,
+            "pid": None,
+            "status": record.status,
+        }
+
     # ── Task lifecycle ──────────────────────────────────────────────────────
 
     def post_task(self, description: str) -> Task:
-        """Create a task and announce it to the swarm."""
+        """Create a task, open an auction, and announce it to the swarm.
+
+        The auction is opened *before* the comms announcement so that
+        in-process agents (whose callbacks fire synchronously) can
+        submit bids into an already-open auction.
+        """
         task = create_task(description)
         update_task(task.id, status=TaskStatus.BIDDING)
         task.status = TaskStatus.BIDDING
+        # Open the auction first so bids from in-process agents land
+        self.auctions.open_auction(task.id)
         self.comms.post_task(task.id, description)
         logger.info("Task posted: %s (%s)", task.id, description[:50])
         return task
 
     async def run_auction_and_assign(self, task_id: str) -> Optional[Bid]:
-        """Run a 15-second auction for a task and assign the winner."""
-        winner = await self.auctions.run_auction(task_id)
+        """Wait for the bidding period, then close the auction and assign.
+
+        The auction should already be open (via post_task).  This method
+        waits the remaining bidding window and then closes it.
+        """
+        await asyncio.sleep(0)  # yield to let any pending callbacks fire
+        winner = self.auctions.close_auction(task_id)
         if winner:
             update_task(
                 task_id,

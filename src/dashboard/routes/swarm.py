@@ -24,6 +24,15 @@ async def swarm_status():
     return coordinator.status()
 
 
+@router.get("/live", response_class=HTMLResponse)
+async def swarm_live_page(request: Request):
+    """Render the live swarm dashboard page."""
+    return templates.TemplateResponse(
+        "swarm_live.html",
+        {"request": request, "page_title": "Swarm Live"},
+    )
+
+
 @router.get("/agents")
 async def list_swarm_agents():
     """List all registered swarm agents."""
@@ -85,6 +94,21 @@ async def post_task(description: str = Form(...)):
         "task_id": task.id,
         "description": task.description,
         "status": task.status.value,
+    }
+
+
+@router.post("/tasks/auction")
+async def post_task_and_auction(description: str = Form(...)):
+    """Post a task and immediately run an auction to assign it."""
+    task = coordinator.post_task(description)
+    winner = await coordinator.run_auction_and_assign(task.id)
+    updated = coordinator.get_task(task.id)
+    return {
+        "task_id": task.id,
+        "description": task.description,
+        "status": updated.status.value if updated else task.status.value,
+        "assigned_agent": updated.assigned_agent if updated else None,
+        "winning_bid": winner.bid_sats if winner else None,
     }
 
 
