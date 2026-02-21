@@ -1,14 +1,16 @@
 """AirLLM backend — only imported when the airllm extra is installed.
 
 Provides TimmyAirLLMAgent: a drop-in replacement for an Agno Agent that
-exposes the same print_response(message, stream) surface while routing
-inference through AirLLM.  On Apple Silicon (arm64 Darwin) the MLX backend
-is selected automatically; everywhere else AutoModel (PyTorch) is used.
+exposes both the run(message, stream) → RunResult interface used by the
+dashboard and the print_response(message, stream) interface used by the CLI.
+On Apple Silicon (arm64 Darwin) the MLX backend is selected automatically;
+everywhere else AutoModel (PyTorch) is used.
 
 No cloud.  No telemetry.  Sats are sovereignty, boss.
 """
 
 import platform
+from dataclasses import dataclass
 from typing import Literal
 
 from timmy.prompts import TIMMY_SYSTEM_PROMPT
@@ -21,6 +23,12 @@ _AIRLLM_MODELS: dict[str, str] = {
 }
 
 ModelSize = Literal["8b", "70b", "405b"]
+
+
+@dataclass
+class RunResult:
+    """Minimal Agno-compatible run result — carries the model's response text."""
+    content: str
 
 
 def is_apple_silicon() -> bool:
@@ -38,7 +46,11 @@ def airllm_available() -> bool:
 
 
 class TimmyAirLLMAgent:
-    """Thin AirLLM wrapper with the same print_response interface as Agno Agent.
+    """Thin AirLLM wrapper compatible with both dashboard and CLI call sites.
+
+    Exposes:
+      run(message, stream)           → RunResult(content=...)  [dashboard]
+      print_response(message, stream) → None                   [CLI]
 
     Maintains a rolling 10-turn in-memory history so Timmy remembers the
     conversation within a session — no SQLite needed at this layer.
@@ -64,12 +76,11 @@ class TimmyAirLLMAgent:
 
     # ── public interface (mirrors Agno Agent) ────────────────────────────────
 
-    def print_response(self, message: str, *, stream: bool = True) -> None:
-        """Run inference, update history, and render the response to stdout.
+    def run(self, message: str, *, stream: bool = False) -> RunResult:
+        """Run inference and return a structured result (matches Agno Agent.run()).
 
-        `stream` is accepted for API compatibility but AirLLM generates the
-        full output in one pass — the result is still printed as soon as it
-        is ready.
+        `stream` is accepted for API compatibility; AirLLM always generates
+        the full output in one pass.
         """
         prompt = self._build_prompt(message)
 
@@ -97,7 +108,12 @@ class TimmyAirLLMAgent:
         self._history.append(f"User: {message}")
         self._history.append(f"Timmy: {response}")
 
-        self._render(response)
+        return RunResult(content=response)
+
+    def print_response(self, message: str, *, stream: bool = True) -> None:
+        """Run inference and render the response to stdout (CLI interface)."""
+        result = self.run(message, stream=stream)
+        self._render(result.content)
 
     # ── private helpers ──────────────────────────────────────────────────────
 

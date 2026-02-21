@@ -58,6 +58,7 @@ body {
   z-index: 100;
 }
 .mc-header-left { display: flex; align-items: baseline; gap: 0; }
+.mc-header-right { display: flex; align-items: center; gap: 16px; }
 .mc-title {
   font-size: 18px;
   font-weight: 700;
@@ -75,6 +76,19 @@ body {
   color: var(--blue);
   letter-spacing: 0.1em;
 }
+.mc-test-link {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 3px 8px;
+  transition: border-color 0.15s, color 0.15s;
+  touch-action: manipulation;
+}
+.mc-test-link:hover { border-color: var(--blue); color: var(--blue); }
 
 /* ── Main layout ─────────────────────────────────── */
 .mc-main {
