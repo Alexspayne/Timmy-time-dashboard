@@ -38,5 +38,5 @@ async def health_status(request: Request):
     return templates.TemplateResponse(
         request,
         "partials/health_status.html",
-        {"ollama": ollama_ok},
+        {"ollama": ollama_ok, "model": settings.ollama_model},
     )

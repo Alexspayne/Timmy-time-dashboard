@@ -9,6 +9,7 @@ from fastapi.templating import Jinja2Templates
 from config import settings
 from dashboard.routes.agents import router as agents_router
 from dashboard.routes.health import router as health_router
+from dashboard.routes.mobile_test import router as mobile_test_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,6 +34,7 @@ app.mount("/static", StaticFiles(directory=str(PROJECT_ROOT / "static")), name="
 
 app.include_router(health_router)
 app.include_router(agents_router)
+app.include_router(mobile_test_router)
 
 
 @app.get("/", response_class=HTMLResponse)
